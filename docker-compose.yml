@@ -1,0 +1,7 @@
+hark:
+  build: .
+  ports:
+    - "5900:5900"
+  devices:
+    - "/dev/snd:/dev/snd"
+
