@@ -6,6 +6,7 @@
 ## Components
 
 - HARK
-- xfce
+- xfce(X)
 - VNC
+- alsa
 
