@@ -22,12 +22,18 @@ RUN apt-get autoclean \
     && apt-get autoremove \
     && rm -rf /var/lib/apt/lists/*
 
+# Change hark setting
+#RUN sed -i 's/sudo\ forever\ start\ app\.js/sudo\ forever\ start\ app\.js\ allowremote/g' /usr/bin/hark_designer
+
+RUN cd /usr/bin/hark-designer && npm install
+
 WORKDIR /root
 
 ADD startup.sh ./
 ADD supervisord.conf ./
 
 EXPOSE 5900
+EXPOSE 3000
 
 ENTRYPOINT ["./startup.sh"]
 
