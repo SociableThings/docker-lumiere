@@ -27,13 +27,15 @@ RUN apt-get autoclean \
 
 RUN cd /usr/bin/hark-designer && npm install
 
-WORKDIR /root
+WORKDIR /usr/share/hark-designer/userdata/networks
 
-ADD startup.sh ./
-ADD supervisord.conf ./
+ADD startup.sh /root/startup.sh
+ADD supervisord.conf /root/supervisord.conf
 
 EXPOSE 5900
 EXPOSE 3000
 
-ENTRYPOINT ["./startup.sh"]
+VOLUME /usr/share/hark-designer/userdata/networks
+
+ENTRYPOINT ["bash", "/root/startup.sh"]
 

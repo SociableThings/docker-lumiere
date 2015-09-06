@@ -3,6 +3,8 @@ hark:
   ports:
     - "5900:5900"
     - "3000:3000"
+  volumes:
+    - ../networks:/usr/share/hark-designer/userdata/networks
   devices:
     - "/dev/snd:/dev/snd"
 
