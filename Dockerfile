@@ -29,8 +29,10 @@ RUN cd /usr/bin/hark-designer && npm install
 
 WORKDIR /usr/share/hark-designer/userdata/networks
 
-ADD startup.sh /root/startup.sh
-ADD supervisord.conf /root/supervisord.conf
+ADD scripts/startup.sh /root/startup.sh
+ADD config/supervisord.conf /root/supervisord.conf
+ADD config/.vimrc /root/.vimrc
+ADD config/julius /root/julius
 
 EXPOSE 5900
 EXPOSE 3000

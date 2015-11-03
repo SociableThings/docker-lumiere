@@ -1,0 +1,80 @@
+#!/usr/bin/env batchflow
+<?xml version="1.0"?>
+<Document>
+  <Network type="subnet" name="MAIN">
+    <Node name="node_MAIN_LOOP_1" type="MAIN_LOOP" x="96.000000" y="72.000000">
+      <Parameter name="LENGTH" type="subnet_param" value="int:ARG2" description="The length of a frame in one channel (in samples)."/>
+      <Parameter name="ADVANCE" type="subnet_param" value="int:ARG3" description="The shift length beween adjacent frames (in samples)."/>
+      <Parameter name="DOWHILE" type="bool" value="" description=""/>
+      <Parameter name="SAMPLING_RATE" type="subnet_param" value="int:ARG4" description="Sampling rate (Hz)."/>
+      <Parameter name="FBANK_COUNT" type="subnet_param" value="int:ARG5" description="The number of filter banks."/>
+      <Parameter name="FBANK_COUNT1" type="subnet_param" value="int:ARG6" description="The number of static components of the input feature vector."/>
+    </Node>
+    <Node name="node_Constant_1" type="Constant" x="-129.000000" y="72.000000">
+      <Parameter name="VALUE" type="subnet_param" value="ARG1" description="The value"/>
+    </Node>
+    <Node name="node_InputStream_1" type="InputStream" x="-25.000000" y="72.000000">
+      <Parameter name="TYPE" type="String" value="" description="Type of stream: stream, fd, or FILE (default stream)"/>
+      <Parameter name="RETRY" type="int" value="" description="If set to N, InputStream will retry N times on open fail"/>
+    </Node>
+    <Link from="node_Constant_1" output="VALUE" to="node_InputStream_1" input="INPUT"/>
+    <Link from="node_InputStream_1" output="OUTPUT" to="node_MAIN_LOOP_1" input="IN"/>
+    <NetOutput name="OUT" node="node_MAIN_LOOP_1" terminal="OUT" object_type="any" description="No description available"/>
+    <Note x="0" y="0" visible="0" text="Created with FlowDesigner 0.9.1"/>
+  </Network>
+  <Network type="iterator" name="MAIN_LOOP">
+    <Node name="node_AudioStreamFromWave_1" type="AudioStreamFromWave" x="71.000000" y="-8.000000">
+      <Parameter name="LENGTH" type="subnet_param" value="LENGTH" description="The length of a frame in one channel (in samples)."/>
+      <Parameter name="ADVANCE" type="subnet_param" value="ADVANCE" description="The shift length beween adjacent frames (in samples)."/>
+      <Parameter name="USE_WAIT" type="bool" value="false" description="If true, real recording is simulated [default: false]."/>
+    </Node>
+    <Node name="node_MultiFFT_1" type="MultiFFT" x="356.000000" y="-15.000000">
+      <Parameter name="LENGTH" type="subnet_param" value="LENGTH" description="The length of FFT."/>
+      <Parameter name="WINDOW" type="string" value="CONJ" description="A window function for FFT. WINDOW should be CONJ, HAMMING, or RECTANGLE."/>
+      <Parameter name="WINDOW_LENGTH" type="subnet_param" value="LENGTH" description="The length of the window."/>
+    </Node>
+    <Node name="node_MelFilterBank_1" type="MelFilterBank" x="222.000000" y="67.000000">
+      <Parameter name="LENGTH" type="subnet_param" value="LENGTH" description="Size of window length."/>
+      <Parameter name="SAMPLING_RATE" type="subnet_param" value="SAMPLING_RATE" description="Sampling rate (Hz)."/>
+      <Parameter name="CUTOFF" type="int" value="8000" description="Cutoff frequency. A frequency band between 0Hz to the cutoff frequency is used for calculation."/>
+      <Parameter name="MIN_FREQUENCY" type="int" value="63" description="Minimum frequency (Hz) [default: 63]"/>
+      <Parameter name="MAX_FREQUENCY" type="int" value="8000" description="Maximum frequency (Hz) [default: 8000]"/>
+      <Parameter name="FBANK_COUNT" type="subnet_param" value="FBANK_COUNT" description="The number of filter banks."/>
+    </Node>
+    <Node name="node_MatrixToMap_1" type="MatrixToMap" x="483.000000" y="-15.000000"/>
+    <Node name="node_SaveFeatures_1" type="SaveFeatures" x="483.000000" y="171.000000">
+      <Parameter name="BASENAME" type="string" value="MFBANK27_" description="Base name for save file names."/>
+    </Node>
+    <Node name="node_PowerCalcForMap_1" type="PowerCalcForMap" x="57.000000" y="67.000000"/>
+    <Node name="node_MSLSExtraction_1" type="MSLSExtraction" x="477.000000" y="75.000000">
+      <Parameter name="FBANK_COUNT" type="subnet_param" value="FBANK_COUNT" description="Number of filter banks of an input spectrum."/>
+      <Parameter name="NORMALIZATION_MODE" type="string" value="CEPSTRAL" description="The domain in which normalization is performed. CEPSTRAL or SPECTRAL."/>
+      <Parameter name="USE_POWER" type="bool" value="true" description="Use power feature if true."/>
+    </Node>
+    <Node name="node_Delta_1" type="Delta" x="19.000000" y="163.000000">
+      <Parameter name="FBANK_COUNT" type="subnet_param" value="FBANK_COUNT1" description="The number of static components of the input feature vector."/>
+    </Node>
+    <Node name="node_FeatureRemover_1" type="FeatureRemover" x="123.000000" y="163.000000">
+      <Parameter name="SELECTOR" type="object" value="&lt;Vector&lt;int&gt; 13 &gt;" description="Set indices of a feature vector to remove like &lt;Vector&lt;int&gt; 13&gt;."/>
+    </Node>
+    <Node name="node_ConstantLocalization_1" type="ConstantLocalization" x="262.000000" y="194.000000">
+      <Parameter name="ANGLES" type="object" value="&lt;Vector&lt;float&gt; 0 &gt;" description="A vector to specify source locations. Each vector element shows azimuth of a source in degree."/>
+      <Parameter name="ELEVATIONS" type="object" value="&lt;Vector&lt;float&gt; 0 &gt;" description="Elevations of source locations. Each element represents an elevation of each source location."/>
+    </Node>
+    <Link from="node_AudioStreamFromWave_1" output="AUDIO" to="node_MultiFFT_1" input="INPUT"/>
+    <Link from="node_MultiFFT_1" output="OUTPUT" to="node_MatrixToMap_1" input="INPUT"/>
+    <Link from="node_PowerCalcForMap_1" output="OUTPUT" to="node_MelFilterBank_1" input="INPUT"/>
+    <Link from="node_MelFilterBank_1" output="OUTPUT" to="node_MSLSExtraction_1" input="FBANK"/>
+    <Link from="node_MatrixToMap_1" output="OUTPUT" to="node_MSLSExtraction_1" input="SPECTRUM">529 -15 551 -15 551 29 292 29 292 83 348 82.5 </Link>
+    <Link from="node_MatrixToMap_1" output="OUTPUT" to="node_PowerCalcForMap_1" input="INPUT">529 -15 551 -15 551 29 -34 29 -34 67 -4 67 </Link>
+    <Link from="node_MSLSExtraction_1" output="OUTPUT" to="node_Delta_1" input="INPUT">531 75 549 75 549 123 -36 123 -36 163 -2.5 163 </Link>
+    <Link from="node_Delta_1" output="OUTPUT" to="node_FeatureRemover_1" input="INPUT"/>
+    <Link from="node_FeatureRemover_1" output="OUTPUT" to="node_SaveFeatures_1" input="FEATURES"/>
+    <Link from="node_ConstantLocalization_1" output="SOURCES" to="node_SaveFeatures_1" input="SOURCES">332.5 194 348 194 348 179 368 178.5 </Link>
+    <NetCondition name="CONDITION" node="node_AudioStreamFromWave_1" terminal="NOT_EOF"/>
+    <NetOutput name="OUT" node="node_SaveFeatures_1" terminal="OUTPUT" object_type="Map&lt;int,ObjectRef&gt;" description="The same as FEATURE."/>
+    <NetInput name="IN" node="node_AudioStreamFromWave_1" terminal="INPUT" object_type="Stream" description="An audio input stream (IStream)."/>
+    <Note x="0" y="0" visible="0" text="Created with FlowDesigner 0.9.1"/>
+  </Network>
+  <Parameter name="ARG1" type="" value=""/>
+</Document>
